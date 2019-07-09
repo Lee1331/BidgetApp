@@ -155,7 +155,33 @@ let UIController = (function(){
         container: '.container',
         expensesPercLabel: '.item__percentage',
     }
+    //private methods
+    let formatNumber = function(num, type){
+        /*
+        Rules:
+        1 - + or - before number
+        2 - exactly 2 decimal places
+        3 - comma seperating the thousands 
+        */
+        let numSplit, int, sign
 
+        num = Math.abs(num)
+        //in order to use 'toFixed()' , .js will convert num (which is currently a primitive) into an object
+        num = num.toFixed(2)
+
+        numSplit = num.split('.')
+        int = numSplit[0]
+        
+        if(int.length > 3){
+            int = `${int.substr(0, int.length - 3)},${int.substr(int.length-3, int.length)}` //input 1234, output 1,234
+        }
+        
+        decimal = numSplit[1]
+
+        return `${type === 'exp' ? sign = '-' : sign = '+'} ${int}.${decimal}`
+    }
+
+    //pubic methods
     return {
         getInput: () => {
             return {
@@ -183,7 +209,7 @@ let UIController = (function(){
             // Replace the placeholder text with some actual data
             newHtml = html.replace('%id%', obj.id)
             newHtml = newHtml.replace('%description%', obj.description)
-            newHtml = newHtml.replace('%value%', obj.value)
+            newHtml = newHtml.replace('%value%', formatNumber(obj.value, type))
             
             // Insert the HTML into the DOM
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml)
@@ -194,7 +220,6 @@ let UIController = (function(){
 
             element = document.getElementById(selectorID)
             element.parentNode.removeChild(element)
-
         },  
 
         clearFields: () => {
@@ -215,9 +240,9 @@ let UIController = (function(){
             let type
             obj.budget > 0 ? type = 'inc' : type = 'exp'
             
-            document.querySelector(DOMStrings.budgetLabel).textContent = obj.budget
-            document.querySelector(DOMStrings.incomeLabel).textContent = obj.totalInc
-            document.querySelector(DOMStrings.expensesLabel).textContent = obj.totalExp
+            document.querySelector(DOMStrings.budgetLabel).textContent = formatNumber(obj.budget, type)
+            document.querySelector(DOMStrings.incomeLabel).textContent = formatNumber(obj.totalInc, 'inc')
+            document.querySelector(DOMStrings.expensesLabel).textContent = formatNumber(obj.totalExp, 'exp')
             
             if (obj.percentage > 0) {
                 document.querySelector(DOMStrings.percentageLabel).textContent = obj.percentage + '%'
