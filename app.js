@@ -59,6 +59,22 @@ let budgetController = (function(){
             //return the new element
             return newItem
         },
+        deleteItem: (type, id) => {
+            let ids, index
+
+            //create a new array containing all the IDs
+            ids = data.allItems[type].map(current => current.id)
+            
+            //get the index of the id in the new array
+            index = ids.indexOf(id)
+
+            //if the index is in the array
+            if(index !== -1){
+                //to delete index, goto the index in the array, and remove 1 item
+                data.allItems[type].splice(index, 1)
+            }
+
+        },
         calculateBudget: () => {
             //calculate total income and expenses
             calculateTotal('exp')
@@ -103,6 +119,7 @@ let UIController = (function(){
         incomeLabel: '.budget__income--value',
         expensesLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
+        container: '.container',
     }
 
     return {
@@ -136,7 +153,15 @@ let UIController = (function(){
             
             // Insert the HTML into the DOM
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml)
-            },  
+        }, 
+            
+        deleteListItem: (selectorID) => {
+            let element
+
+            element = document.getElementById(selectorID)
+            element.parentNode.removeChild(element)
+
+        },  
 
         clearFields: () => {
             let fields, fieldsArr
@@ -188,6 +213,8 @@ let controller = (function(budgetCtrl, UICtrl){
                 ctrlAddItem()        
             }
         })
+
+        document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem)
     }
 
     let updateBudget = function(){
@@ -221,6 +248,32 @@ let controller = (function(budgetCtrl, UICtrl){
             UICtrl.clearFields()
             
             //5 - calculate and update budget
+            updateBudget()
+        }
+    }
+
+    //the event parameter will allow us to access the target element
+    let ctrlDeleteItem = function(event){
+        let itemID, splitID, type, ID
+
+        // console.log(event.target) - get target element
+        // console.log(event.target.parentNode) - get target elements parent
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id
+
+        if(itemID){
+            //the id for each income/expense list item is formatted as 'inc/exp-{index}' - i.e. - inc-0, exp-3
+            //by using split, we can seperate up to the '-' to get the number of each element, and the type as seperate strings
+            splitID = itemID.split('-') //returns ['type', 'id']
+            type = splitID[0]
+            ID = parseInt(splitID[1])
+
+            //1 - delete the item from the data structure
+            budgetCtrl.deleteItem(type, ID)
+
+            //2 - delete the item from the UI
+            UICtrl.deleteListItem(itemID)
+
+            //3 - update and show the new budget
             updateBudget()
         }
     }
